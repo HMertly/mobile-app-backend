@@ -3,12 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+// ✅ Route dosyaları
 const authRoutes = require('./routes/auth');
+const notificationRoutes = require('./routes/notification'); // <- ekledik
 
 const app = express();
 
-// ✅ Middleware – sıraya dikkat!
-app.use(express.json()); // Gelen JSON verisini parse eder
+// ✅ Middleware
+app.use(express.json());
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST'],
@@ -17,8 +19,9 @@ app.use(cors({
 
 // ✅ Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/notifications', notificationRoutes); // <- burada tanıttık
 
-// ✅ MongoDB Bağlantısı
+// ✅ MongoDB bağlantısı
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         console.log('✅ MongoDB bağlantısı başarılı');
