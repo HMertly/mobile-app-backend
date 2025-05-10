@@ -2,7 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const NotificationToken = require('../models/NotificationToken');
-const fetch = require('node-fetch');
+const axios = require('axios');
+
 
 // Token kaydetme
 router.post('/register-token', async (req, res) => {
