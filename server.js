@@ -1,3 +1,4 @@
+const notificationRoutes = require('./routes/notification');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
