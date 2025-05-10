@@ -58,9 +58,10 @@ router.post('/send-alert', async (req, res) => {
         console.log('📨 Bildirim gönderildi:', result);
         res.json({ message: 'Bildirim gönderildi', result });
     } catch (error) {
-        console.error('❌ Bildirim gönderilirken hata:', error);
-        res.status(500).json({ message: 'Bildirim gönderme hatası' });
+        console.error('❌ Bildirim gönderilirken hata:', error.message || error);
+        res.status(500).json({ message: 'Bildirim gönderme hatası', error: error.message });
     }
+
 });
 
 module.exports = router;
