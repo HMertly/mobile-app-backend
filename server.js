@@ -5,7 +5,7 @@ require('dotenv').config();
 
 // ✅ Route dosyaları
 const authRoutes = require('./routes/auth');
-const notificationRoutes = require('./routes/notification'); // <- ekledik
+const notificationRoutes = require('./routes/notification'); // <- bildirim route'u
 
 const app = express();
 
@@ -19,7 +19,7 @@ app.use(cors({
 
 // ✅ Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/notifications', notificationRoutes); // <- burada tanıttık
+app.use('/api/notifications', notificationRoutes); // <- bildirim rotasını tanıt
 
 // ✅ MongoDB bağlantısı
 mongoose.connect(process.env.MONGO_URI)

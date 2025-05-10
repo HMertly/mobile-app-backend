@@ -1,12 +1,12 @@
+// routes/notification.js
 const express = require('express');
 const router = express.Router();
 const NotificationToken = require('../models/NotificationToken');
 const fetch = require('node-fetch');
 
-// 📌 Token kaydetme
+// Token kaydetme
 router.post('/register-token', async (req, res) => {
     const { token } = req.body;
-
     if (!token) {
         return res.status(400).json({ message: 'Token gerekli' });
     }
@@ -26,7 +26,7 @@ router.post('/register-token', async (req, res) => {
     }
 });
 
-// 🔔 Bildirim gönderme
+// Bildirim gönderme
 router.post('/send-alert', async (req, res) => {
     const { title, body } = req.body;
 
