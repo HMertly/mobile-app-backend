@@ -1,5 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const activityRoutes = require('./routes/activity');
+app.use('/api/activity', activityRoutes);
 const cors = require('cors');
 require('dotenv').config();
 
@@ -20,6 +22,7 @@ app.use(cors({
 // ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes); // <- bildirim rotasını tanıt
+app.use('/api/activity', activityRoutes);
 
 // ✅ MongoDB bağlantısı
 mongoose.connect(process.env.MONGO_URI)
