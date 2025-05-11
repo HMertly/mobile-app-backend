@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const activityRoutes = require('./routes/activity');
-app.use('/api/activity', activityRoutes);
 const cors = require('cors');
 require('dotenv').config();
 
@@ -18,6 +17,7 @@ app.use(cors({
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.use('/api/activity', activityRoutes);
 
 // ✅ Routes
 app.use('/api/auth', authRoutes);
