@@ -7,25 +7,30 @@ const axios = require('axios');
 
 // Token kaydetme
 router.post('/register-token', async (req, res) => {
-    const { token } = req.body;
-    if (!token) {
-        return res.status(400).json({ message: 'Token gerekli' });
+    const { token, email } = req.body;
+
+    console.log("📥 Token kaydı için gelen istek:", { token, email });
+
+    if (!token || !email) {
+        console.warn("⚠️ Eksik veri:", { token, email });
+        return res.status(400).json({ message: 'Token ve email gerekli' });
     }
 
     try {
         const existing = await NotificationToken.findOne({ token });
         if (!existing) {
             await NotificationToken.create({ token });
-            console.log('🔐 Yeni token kaydedildi:', token);
+            console.log("✅ Yeni token eklendi:", token);
         } else {
-            console.log('ℹ️ Token zaten mevcut:', token);
+            console.log("ℹ️ Token zaten kayıtlı:", token);
         }
         res.json({ message: 'Token kaydedildi' });
     } catch (error) {
         console.error('❌ Token kaydederken hata:', error);
-        res.status(500).json({ message: 'Sunucu hatası' });
+        res.status(500).json({ message: 'Sunucu hatası', error: error.message });
     }
 });
+
 
 // Bildirim gönderme
 router.post('/send-alert', async (req, res) => {
