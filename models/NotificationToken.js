@@ -1,8 +1,9 @@
 // ✅ models/NotificationToken.js
 const mongoose = require('mongoose');
+
 const notificationTokenSchema = new mongoose.Schema({
-    email: { type: String, required: true }, // Kime ait olduğunu belirtir
     token: { type: String, required: true, unique: true },
+    email: { type: String, required: true }, // ✅ email alanı eklendi
     createdAt: { type: Date, default: Date.now }
 });
 

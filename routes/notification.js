@@ -1,9 +1,6 @@
-// routes/notification.js
 const express = require('express');
 const router = express.Router();
 const NotificationToken = require('../models/NotificationToken');
-const axios = require('axios');
-
 
 // Token kaydetme
 router.post('/register-token', async (req, res) => {
@@ -18,12 +15,14 @@ router.post('/register-token', async (req, res) => {
 
     try {
         const existing = await NotificationToken.findOne({ token });
+
         if (!existing) {
-            await NotificationToken.create({ token });
+            await NotificationToken.create({ token, email }); // ✅ email ile birlikte kaydet
             console.log("✅ Yeni token eklendi:", token);
         } else {
             console.log("ℹ️ Token zaten kayıtlı:", token);
         }
+
         res.json({ message: 'Token kaydedildi' });
     } catch (error) {
         console.error('❌ Token kaydederken hata:', error);
@@ -31,17 +30,20 @@ router.post('/register-token', async (req, res) => {
     }
 });
 
-
 // Bildirim gönderme
 router.post('/send-alert', async (req, res) => {
-    const { title, body } = req.body;
+    const { title, body, email } = req.body;
 
-    if (!title || !body) {
-        return res.status(400).json({ message: 'Başlık ve mesaj gerekli' });
+    if (!title || !body || !email) {
+        return res.status(400).json({ message: 'Başlık, mesaj ve email gerekli' });
     }
 
     try {
-        const tokens = await NotificationToken.find();
+        const tokens = await NotificationToken.find({ email });
+
+        if (!tokens.length) {
+            return res.status(404).json({ message: `Bu email'e ait token bulunamadı: ${email}` });
+        }
 
         const messages = tokens.map(({ token }) => ({
             to: token,
@@ -67,7 +69,6 @@ router.post('/send-alert', async (req, res) => {
         console.error('❌ Bildirim gönderilirken hata:', error.message || error);
         res.status(500).json({ message: 'Bildirim gönderme hatası', error: error.message });
     }
-
 });
 
 module.exports = router;
