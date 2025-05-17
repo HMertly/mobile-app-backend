@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const NotificationToken = require('../models/NotificationToken');
-const fetch = require('node-fetch'); // Eğer Node.js 18+ değilse bunu kullan
+const fetch = require('node-fetch'); // Node <18 için gerekli
 
-// 📌 Token kaydetme (userEmail + guardianEmail ilişkili)
+// 📌 Token Kaydı (userEmail → guardianEmail eşleşmesi)
 router.post('/register-token', async (req, res) => {
     const { token, userEmail, guardianEmail } = req.body;
+
+    console.log("📥 Gelen token kaydı:", req.body);
 
     if (!token || !userEmail || !guardianEmail) {
         return res.status(400).json({ message: 'Token, userEmail ve guardianEmail gerekli' });
@@ -31,11 +33,11 @@ router.post('/register-token', async (req, res) => {
     }
 });
 
-// 📌 Bildirim gönderme (userEmail'e bağlı guardian'a gönder)
+// 📌 Bildirim Gönderme (userEmail → guardianToken)
 router.post('/send-alert', async (req, res) => {
-    const { email, title, body } = req.body; // email = kullanıcı email’i
+    const { email, title, body } = req.body; // `email` = kullanıcı email
 
-    if (!email || !title || !body) {
+    if (!title || !body || !email) {
         return res.status(400).json({ message: 'Email, başlık ve mesaj gerekli' });
     }
 
