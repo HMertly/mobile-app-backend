@@ -1,26 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const NotificationToken = require('../models/NotificationToken');
+const fetch = require('node-fetch'); // Eğer Node.js 18+ değilse bunu kullan
 
-// Token kaydetme
+// 📌 Token kaydetme (userEmail + guardianEmail ilişkili)
 router.post('/register-token', async (req, res) => {
-    const { token, email } = req.body;
+    const { token, userEmail, guardianEmail } = req.body;
 
-    console.log("📥 Token kaydı için gelen istek:", { token, email });
-
-    if (!token || !email) {
-        console.warn("⚠️ Eksik veri:", { token, email });
-        return res.status(400).json({ message: 'Token ve email gerekli' });
+    if (!token || !userEmail || !guardianEmail) {
+        return res.status(400).json({ message: 'Token, userEmail ve guardianEmail gerekli' });
     }
 
     try {
-        const existing = await NotificationToken.findOne({ token });
+        const existing = await NotificationToken.findOne({ userEmail });
 
-        if (!existing) {
-            await NotificationToken.create({ token, email }); // ✅ email ile birlikte kaydet
-            console.log("✅ Yeni token eklendi:", token);
+        if (existing) {
+            existing.token = token;
+            existing.guardianEmail = guardianEmail;
+            await existing.save();
+            console.log('🔁 Token güncellendi:', token);
         } else {
-            console.log("ℹ️ Token zaten kayıtlı:", token);
+            await NotificationToken.create({ token, userEmail, guardianEmail });
+            console.log('✅ Yeni token kaydedildi:', token);
         }
 
         res.json({ message: 'Token kaydedildi' });
@@ -30,27 +31,27 @@ router.post('/register-token', async (req, res) => {
     }
 });
 
-// Bildirim gönderme
+// 📌 Bildirim gönderme (userEmail'e bağlı guardian'a gönder)
 router.post('/send-alert', async (req, res) => {
-    const { title, body, email } = req.body;
+    const { email, title, body } = req.body; // email = kullanıcı email’i
 
-    if (!title || !body || !email) {
-        return res.status(400).json({ message: 'Başlık, mesaj ve email gerekli' });
+    if (!email || !title || !body) {
+        return res.status(400).json({ message: 'Email, başlık ve mesaj gerekli' });
     }
 
     try {
-        const tokens = await NotificationToken.find({ email });
+        const entry = await NotificationToken.findOne({ userEmail: email });
 
-        if (!tokens.length) {
-            return res.status(404).json({ message: `Bu email'e ait token bulunamadı: ${email}` });
+        if (!entry) {
+            return res.status(404).json({ message: `Bu kullanıcıya ait token bulunamadı: ${email}` });
         }
 
-        const messages = tokens.map(({ token }) => ({
-            to: token,
+        const message = {
+            to: entry.token,
             sound: 'default',
             title,
             body,
-        }));
+        };
 
         const expoResponse = await fetch('https://exp.host/--/api/v2/push/send', {
             method: 'POST',
@@ -59,7 +60,7 @@ router.post('/send-alert', async (req, res) => {
                 'Accept-Encoding': 'gzip, deflate',
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(messages),
+            body: JSON.stringify(message),
         });
 
         const result = await expoResponse.json();
