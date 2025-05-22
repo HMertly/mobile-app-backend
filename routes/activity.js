@@ -1,41 +1,37 @@
+// routes/activity.js
 const express = require('express');
 const router = express.Router();
 const Activity = require('../models/Activity');
+const DailyActivity = require('../models/DailyActivity');
 
-// GET: Belirli email'e ait veriyi getir
+// GET: cumulative or daily by ?date=
 router.get('/:email', async (req, res) => {
     try {
+        const { date } = req.query;
+        if (date) {
+            const daily = await DailyActivity.findOne({ email: req.params.email, date });
+            return res.json(daily || { walking: 0, running: 0, upstairs: 0 });
+        }
         const activity = await Activity.findOne({ email: req.params.email });
-        if (!activity) return res.status(404).json({ message: "Veri bulunamadı" });
-        res.json(activity);
+        return res.json(activity || { walking: 0, running: 0, upstairs: 0 });
     } catch (err) {
-        res.status(500).json({ message: "Sunucu hatası" });
+        res.status(500).json({ message: 'Sunucu hatası', error: err.message });
     }
 });
 
-// POST: Belirli email'e ait veriyi güncelle veya oluştur
+// POST: update cumulative or daily by ?date=
 router.post('/:email', async (req, res) => {
     try {
-        const existing = await Activity.findOne({ email: req.params.email });
-
-        if (existing) {
-            existing.walking = req.body.walking;
-            existing.running = req.body.running;
-            existing.upstairs = req.body.upstairs;
-            await existing.save();
-            return res.json({ message: "Güncellendi" });
-        } else {
-            const newActivity = new Activity({
-                email: req.params.email,
-                walking: req.body.walking,
-                running: req.body.running,
-                upstairs: req.body.upstairs
-            });
-            await newActivity.save();
-            return res.status(201).json({ message: "Oluşturuldu" });
-        }
+        const { date } = req.query;
+        const { walking, running, upstairs } = req.body;
+        const Model = date ? DailyActivity : Activity;
+        const filter = { email: req.params.email, ...(date && { date }) };
+        const update = { walking, running, upstairs, email: req.params.email, ...(date && { date }) };
+        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+        const doc = await Model.findOneAndUpdate(filter, update, options);
+        res.json(doc);
     } catch (err) {
-        res.status(500).json({ message: "Sunucu hatası" });
+        res.status(500).json({ message: 'Sunucu hatası', error: err.message });
     }
 });
 
